@@ -26,7 +26,7 @@ def get_climatologias_diarias(id):
     idema = id
 
     url_climatologias="/api/valores/climatologicos/diarios/datos/fechaini/{}/fechafin/{}/estacion/{}".format(fechaIniStr,fechaFinStr,idema)
-    print(url_climatologias)
+    # print(url_climatologias)
 
     params = {"api_key": token_profe}
     response = requests.get(url_base+url_climatologias, params=params)
@@ -35,8 +35,12 @@ def get_climatologias_diarias(id):
 
     response_final = requests.get(url_datos, params=params)
     #print("Los datos obtenidos son: ", response_final.json())
-    return response_final
+    return response_final.status_code, response_final.json()
 
+def get_medias_agosto():
+    print("Comenzando ejercicio opcional, encadenando peticiones")
+    
+    return
 
 
 
@@ -50,14 +54,23 @@ def main():
         print("La url obtenida es: " + inventarios_url)
         # Hacemos una petición a la url que hemos obtenido con la request anterior
         code_1, all_stations = get_specific_station(inventarios_url)
+        stations_dict = {}
         # SI todo ha ido bien, buscamos la estación "MADRID, CIUDAD UNIVERSITARIA"
         if(code_1 == 200):
             for station in all_stations:
+                # Creamos un diccionario con {nombre:id} para cada una de las estaciones para el ejercicio opciona
+                stations_dict[station['nombre']] = station["indicativo"]
                 if (station['nombre'] == "MADRID, CIUDAD UNIVERSITARIA"):
                     indicativo = station["indicativo"]
                     print("Obtenido el indicativo para la estación: ", station["nombre"], "---->", indicativo)
                     # Ahora podemos obtener la información de la estación en concreto
                     get_climatologias_diarias(indicativo)
+                
+
+        print("sigue el codigo tras el break")
+        print(stations_dict)
+        # para la parte opcional, parseamos la respuesta
+        get_medias_agosto(stations_dict)
 
 
 

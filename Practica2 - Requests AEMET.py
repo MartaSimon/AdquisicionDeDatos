@@ -1,21 +1,23 @@
 from os import stat
 import requests
 import json
+import os
 
 
 url_base = "https://opendata.aemet.es/opendata/"
-token_profe = "eyJhbGciOiJIUzI1NiJ9.eyJzdWIiOiJqYWRyYXF1ZUBoZXkuY29tIiwianRpIjoiZmM1ODIwZTMtZWMwYS00MGU4LTgxZDAtNTQ5NTU2ZGE2MDRiIiwiaXNzIjoiQUVNRVQiLCJpYXQiOjE2MDQwNjM0OTMsInVzZXJJZCI6ImZjNTgyMGUzLWVjMGEtNDBlOC04MWQwLTU0OTU1NmRhNjA0YiIsInJvbGUiOiIifQ.X0Xis-NkWZ2ljH6DeYePgcvwS4imU1u9Bo2wy1zeZH4"
+#api_key = "eyJhbGciOiJIUzI1NiJ9.eyJzdWIiOiJqYWRyYXF1ZUBoZXkuY29tIiwianRpIjoiZmM1ODIwZTMtZWMwYS00MGU4LTgxZDAtNTQ5NTU2ZGE2MDRiIiwiaXNzIjoiQUVNRVQiLCJpYXQiOjE2MDQwNjM0OTMsInVzZXJJZCI6ImZjNTgyMGUzLWVjMGEtNDBlOC04MWQwLTU0OTU1NmRhNjA0YiIsInJvbGUiOiIifQ.X0Xis-NkWZ2ljH6DeYePgcvwS4imU1u9Bo2wy1zeZH4"
+api_key = os.environ["AEMET_API_KEY"]
 
 def get_inventario():
     endpoint_inventario= "api/valores/climatologicos/inventarioestaciones/todasestaciones"
     print("Obteniendo inventarios...", url_base+endpoint_inventario)
-    params = {"api_key": token_profe}
+    params = {"api_key": api_key}
     response = requests.get(url_base + endpoint_inventario, params=params)
 
     return response.status_code, response.json()
 
 def get_specific_station(url):
-    params = {"api_key": token_profe}
+    params = {"api_key": api_key}
     response = requests.get(url, params=params)
     
     return response.status_code, response.json()
@@ -28,7 +30,7 @@ def get_climatologias_diarias(id):
     url_climatologias="/api/valores/climatologicos/diarios/datos/fechaini/{}/fechafin/{}/estacion/{}".format(fechaIniStr,fechaFinStr,idema)
     # print(url_climatologias)
 
-    params = {"api_key": token_profe}
+    params = {"api_key": api_key}
     response = requests.get(url_base+url_climatologias, params=params)
     url_datos = response.json()["datos"]
     print("La URL de donde buscar los datos de la estación 'MADRID, CIUDAD UNIVERSITARIA' es: ", url_datos)

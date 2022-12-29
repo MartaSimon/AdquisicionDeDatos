@@ -28,5 +28,5 @@ print(response.status_code)
 print(response.json())
 
 
-with open('../kobe.json', 'w', encoding='utf-8') as f:
+with open('kobe.json', 'w', encoding='utf-8') as f:
     json.dump(response.json(), f, ensure_ascii=False, indent=4)

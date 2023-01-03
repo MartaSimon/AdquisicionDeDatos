@@ -96,7 +96,7 @@ time.sleep(2)
 
 
 # buscar primero por filas, luego por columnas
-# en el caso concreto de la col 1 coher la imahen
+# en el caso concreto de la col 1 coger la imahen
 
 
 

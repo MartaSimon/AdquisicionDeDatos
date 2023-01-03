@@ -1,6 +1,4 @@
-from os import stat
 import requests
-import json
 import os
 import time
 
@@ -8,14 +6,42 @@ import time
 url_base = "https://opendata.aemet.es/opendata/"
 endpoint_inventarios = "api/valores/climatologicos/inventarioestaciones/todasestaciones"
 
+'''
+                    ¡IMPORTANTE! 
+
+Para que la siguiente linea funcione, es necesario tener una variable de entorno llamada AEMET_API_KEY con el API_KEY personal asignado por la AEMET.
+
+Para setear la variable de entorno debemos ejecutar desde una terminal el siguiente código:
+    > set AEMET_API_KEY=tu_api_key_personal
+
+Para comprobar que la variable de entorno se ha configurado correctamente, desde la misma terminal ejecutamos el siguiente código:
+    > echo %AEMET_API_KEY%
+''' 
 api_key = os.environ["AEMET_API_KEY"]
 
 def make_request(url):
+    '''
+    Realiza una llamada con la librería request de python a la url que recibe como argumento.
+    Devuelve el código de respuesta de la api y el contenido de la misma.
+    
+    Params
+    -------
+    url : str
+    La url completa a la que hacer la llamada.
+    
+    Return
+    -------
+    status_code : int
+    Código de respuesta de la api
+    
+    response.json: dict
+    Diccionario con la respuesta de la api en formato json.
+    '''
     print("Haciendo llamada al endpoint... ", url)
     params = {"api_key": api_key}
     try:
         response = requests.get(url, params=params)
-        # S nos devuelve un error de too many requests, esperamos un minuto y lo intentamos de nuevo
+        # Si nos devuelve un error de too many requests(429), esperamos un minuto y lo intentamos de nuevo
         if (response.status_code == 429):
             time.sleep(60)
             response = requests.get(url, params = params)
@@ -27,11 +53,36 @@ def make_request(url):
 
 
 def get_climatologias_diarias(fechaIniStr, fechaFinStr, id):
+    '''
+    Obtiene las climatologías de los dias comprendidos entre las fechas de inicio y final que recibe como argumento
+    para la estacion correspondiente al id que también recibe como argumento.
+    
+    Params
+    -------
+    fechaIniStr : str
+    La fecha de inicio de los dias de los que queremos obtener la climatología.
+
+    fechaFinStr: str
+    La fecha de fin de los dias de los que queremos obtener la climatología.
+    
+    id:
+    El identificador de la estacion de la que queremos conocer los datos.
+
+    Return
+    -------
+    status_code : int
+    Código de respuesta de la api
+    
+    response.json: dict
+    Diccionario con la respuesta de la api en formato json.
+
+    '''
     # Sustituimos los datos en la URL
     url_climatologias="api/valores/climatologicos/diarios/datos/fechaini/{}/fechafin/{}/estacion/{}".format(fechaIniStr,fechaFinStr,id)
 
     code_2, response = make_request(url_base + url_climatologias)
    
+    # Si obtenemos una respuesta satisfactoria de la api, podemos realizar la busqueda de la estacion correspondiente en los días indicados
     if(code_2 == 200):
         url_datos = response["datos"]
         code_3, response_final = make_request(url_datos)
@@ -49,13 +100,12 @@ def main():
         print("Ha habido un error en la petición... ", code_0)
         return
 
-    #convert string to  object
+    # Obtenemos la url recibida como respuesta de la peticion anterior
     inventarios_url = inventarios['datos']
     print("La url obtenida es: " + inventarios_url)
     
     # Hacemos una petición a la url que hemos obtenido con la request anterior
     code_1, all_stations = make_request(inventarios_url)
-    # stations_dict = {}
     
     # Si todo ha ido bien, buscamos la estación "MADRID, CIUDAD UNIVERSITARIA"
     if(code_1 != 200):
@@ -129,7 +179,7 @@ def main():
         dict_final[year] = suma/len(estaciones)
 
     print("La media de temperaturas en el mes de agosto por año es: ", array_final)
-    print("La media de temperaturas en el mes de agosto por año es: ",dict_final)
+    print("La media de temperaturas en el mes de agosto por año es: ", dict_final)
 
 
 if __name__ == "__main__":

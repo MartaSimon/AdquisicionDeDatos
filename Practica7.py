@@ -1,6 +1,8 @@
 import requests
-from bs4 import BeautifulSoup
 import json
+
+from bs4 import BeautifulSoup
+
 
 ###################################################
 ##      PRÁCTICA 7.A - BEAUTIFULSOUP

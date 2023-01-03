@@ -1,6 +1,8 @@
 import requests
-from bs4 import BeautifulSoup
 import json
+
+from bs4 import BeautifulSoup
+
 
 #################################################
 #   PARTE1: BÚSQUEDA DE LA TABLA
@@ -67,7 +69,6 @@ for i, item in enumerate(rows):
                 # Si la celda no contiene ni links ni imagenes, insertamos el texto en la clave del diccionario correspondiente
                 else:
                     data[country][headers[z]] = info.getText(strip=True)
-            # print("--------------------------------------------------------------------")
 
 print(f"El diccionario final es: {data}")
 

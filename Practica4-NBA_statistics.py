@@ -1,5 +1,4 @@
 import json
-import numpy as np
 
 def load_json(path):
     """
@@ -29,25 +28,29 @@ header_index = [d["resultSets"]["name" == "SeasonTotalsRegularSeason"]["headers"
 regular_season_stats = []
 # Añadimos las cabeceras a la lista
 regular_season_stats.append(["AÑO DE LA TEMPORADA", "EDAD DEL JUGADOR", "PARTIDOS DISPUTADOS", "MEDIA DE PUNTOS ANOTADOS", "MEDIA DE ASISTENCIAS REPARTIDAS", "MEDIA DE REBOTES RECOGIDOS"])
-    
+
+# Generamos la matriz con los datos que nos interesan    
 for item_dict in d["resultSets"]["name" == "SeasonTotalsRegularSeason"]["rowSet"]:
     aux_list = []
     for index in header_index:
-        # np_item_list = np.array(item_list)
         aux_list.append(item_dict[index])
     regular_season_stats.append(aux_list)
             
 print("La matriz obtenida es la siguiente: \n", regular_season_stats)
 
-# Una vez generada la matriz...
-# 1. Obtén la temporada con mayor y menor cantidad total de puntos anotados
-#       Para esto tendremos que multiplicar la "MEDIA DE PUNTOS ANOTADOS" por "PARTIDOS DISPUTADOS", y obtener el máximo y minimo valor
-# 2. Obtén la media de puntos absoluta durante toda la carrera de Kobe Bryant
-#       Para esto, tendremos que que multiplicar por cada temporada la columna "MEDIA DE PUNTOS ANOTADOS" por "PARTIDOS DISPUTADOS"
-#       y dividir por el total de partidos disputados a lo largo de la carrera.
-# 3. obtener también la media absoluta de rebotes y asistencias 
-#       Para esto, tendremos que realizar la misma operacion que en el apartado anterior, sustituyendo la media de puntos anotados por las columnas 
-#       "MEDIA DE ASISTENCIAS REPARTIDAS" y "MEDIA DE REBOTES RECOGIDOS"
+'''
+Una vez generada la matriz...
+    1. Obtén la temporada con mayor y menor cantidad total de puntos anotados
+      Para esto tendremos que multiplicar la "MEDIA DE PUNTOS ANOTADOS" por "PARTIDOS DISPUTADOS", y obtener el máximo y minimo valor
+
+    2. Obtén la media de puntos absoluta durante toda la carrera de Kobe Bryant
+      Para esto, tendremos que que multiplicar por cada temporada la columna "MEDIA DE PUNTOS ANOTADOS" por "PARTIDOS DISPUTADOS"
+      y dividir por el total de partidos disputados a lo largo de la carrera.
+
+    3. obtener también la media absoluta de rebotes y asistencias 
+      Para esto, tendremos que realizar la misma operacion que en el apartado anterior, sustituyendo la media de puntos anotados por las columnas 
+      "MEDIA DE ASISTENCIAS REPARTIDAS" y "MEDIA DE REBOTES RECOGIDOS"
+'''
 
 # Empezamos recorriendo el array generado
 # inicializamos a 0 todas las variables necesarias para los calculos del bucle

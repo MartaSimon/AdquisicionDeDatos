@@ -48,25 +48,28 @@ for i, item in enumerate(rows):
             if z==0: 
                 country = info.getText(strip=True)
                 data[country]={}
-            print("####",country)
-            print(info)
+            
             # A partir de la segunda columna
             if z!=0:
                 # Buscamos si existe algun link en la celda que estamos inspeccionando, para añadirlo a la entrada del diccionario
-                if info.find("a"):
+                links = info.find_all("a")
+                if links:
                     data[country][headers[z]] = {}
-                    data[country][headers[z]]["Text"] = info.getText(strip=True)
-                    data[country][headers[z]]["Link"] = "https://en.wikipedia.org" + info.a["href"]
+                    # Obtenemos el texto completo de la celda
+                    data[country][headers[z]]["Text"] = info.getText(strip=True)  
+                    # Almacenamos también cada una de las urls que contiene la celda, asociada a cada texto encontrado
+                    for link in links: 
+                        if link.getText(strip=True) and not "note" in link.getText(strip=True):
+                            data[country][headers[z]][link.getText(strip=True)+" Link"] =  "https://en.wikipedia.org" + link["href"]
                 # Buscamos si existe alguna imagen en la celda que estamos inspeccionando, para añadirla a la entrada del diccionario
                 if info.find("img"):
-                    data[country][headers[z]]["Image"] = "https://en.wikipedia.org" + info.img["src"]
+                    data[country][headers[z]]["Flag"] = "https://en.wikipedia.org" + info.img["src"]
                 # Si la celda no contiene ni links ni imagenes, insertamos el texto en la clave del diccionario correspondiente
                 else:
                     data[country][headers[z]] = info.getText(strip=True)
-            print("--------------------------------------------------------------------")
+            # print("--------------------------------------------------------------------")
 
 print(f"El diccionario final es: {data}")
-
 
 
 #################################################

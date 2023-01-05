@@ -2,6 +2,8 @@ import requests
 import argparse
 import time
 import logging
+import os, os.path
+
 
 from selenium import webdriver
 from selenium.webdriver.chrome.service import Service
@@ -34,6 +36,13 @@ def search_and_click(xpath):
     element.click()
     time.sleep(1)
 
+def safe_open_w(path):
+    ''' 
+    Open "path" for writing, creating any parent directories as needed.
+    '''
+    os.makedirs(os.path.dirname(path), exist_ok=True)
+    return open(path, 'wb')
+
 url = "https://www.boe.es/diario_borme/"
 
 # En primer lugar, permitimos pasar argumentos al iniciar el programa.
@@ -58,38 +67,10 @@ if response.status_code==200:
     # Abrimos selenium para descargar la informacion
     # Indicamos la ruta del driver que debe usar Selenium
     driver_path = "../chromedriver.exe"
-    s = Service(driver_path)
-
-    # Establecemos el nombre del directorio en el que queremos almacenar los pdfs descargados
-    dir_base= r"C:\Users\marti\Desktop\Boletin_" + fecha
-    chromeOptions = webdriver.chrome.options.Options()
-    prefs = {'download.default_directory': dir_base, # indicamos el directorio en el que lo queremos descargar
-            "plugins.always_open_pdf_externally": True} # Para descargar directamente el pdf, en lugar de abrirlo en el navegador
-    chromeOptions.add_experimental_option("prefs",prefs)
-
-    # Antes de inicializar el driver, obtenemos las distintas secciones y el numero de pdfs que hay en cada una, para almacenar cada pdf en su subdirectorio correspondiente
-    soup = BeautifulSoup(response.content, "html.parser")
-    seccion_segunda = soup.find("div", class_="sumario")#, class_="sumario")
-
-    cabeceras_raw = seccion_segunda.find_all("h4")
-    cabeceras = []
-    for cabecera in cabeceras_raw:
-        cabeceras.append(cabecera.getText())    
-    # print(cabeceras) 
-    
-    longitud = []
-    ul_tags = cabeceras_raw[2].find_next_siblings("ul")
-    for ul_tag in ul_tags:
-        li_tag = ul_tag.findChildren('li', class_="puntoPDF")
-        # La longitud de li_tag nos indica cuantos pdfs hay en cada subseccion.
-        longitud.append(len(li_tag))
-        # print(seccion_segunda)
-    # creamos un diccionario con las secciones como claves, y el numero de pdfs por seccion como valores
-    subsecciones = dict(zip(cabeceras[2:], longitud))
-    print(subsecciones)
+    s = Service(driver_path)  
 
     # Inicializamos el driver con la configuracion establecida
-    driver = webdriver.Chrome(service=s, options=chromeOptions)
+    driver = webdriver.Chrome(service=s)
     
     # Accedemos a la url qde la que queremos descargar los datos
     driver.get(url_borme)
@@ -101,26 +82,56 @@ if response.status_code==200:
     search_and_click(xpath="//div[@class='dropdown']")
     # A continuación, navegamos hasta la seccion segunda
     search_and_click(xpath="//a[text()='SECCIÓN SEGUNDA. Anuncios y avisos legales']")
-    # A continuacion, seleccionamos uno a uno los pdfs para descargarlos
-    pdfs_list = driver.find_elements(By.XPATH, "//li[@class='puntoPDF']")
-    for i, pdf in enumerate(pdfs_list):
-        # inicializamos el driver con los directorios en los que queremos almacenar la informacion.
-        pdf.click()
-   
+    # Obtenemos la url de dicha seccion
+    url_seccion_segunda = driver.current_url
+    print("URL de la pagina actual:", driver.current_url)
+    # Una vez hemos navegado hasta la página que queremos, podemos cerrar el driver. El trabajo de descarga lo haremos mediante la librería requests
+    driver.close()
+    print("Cerrando driver")
 
+    # Una vez obtenida la seccion actual, realizamos un request a dicha url para obtener su html, parsearlo y poder descargar los pdfs
+    response = requests.get(url_seccion_segunda)
+    soup = BeautifulSoup(response.content, "html.parser")
+
+    # Buscamos el div que contiene toda la informacion que necesitamos
+    seccion_segunda = soup.find("div", class_="sumario")
+    # Obtenemos cada una de las subsecciones de la seccion segunda
+    cabeceras_raw = seccion_segunda.find_all("h4")
+
+    # Almacenamos todas las cabeceras para, posteriormente, crear los subdirectorios y almacenar los pdfs
+    cabeceras = []
+    for cabecera in cabeceras_raw:
+        cabeceras.append(cabecera.getText())
     
-
-    # Obtenemos el nombre de cada una de las subsecciones mediante la librería requests
+    # Establecemos el nombre del directorio en el que queremos almacenar los pdfs descargados
+    # Está compuesta por el nombre boletín seguido de la fecha del mismo
+    dir_base= "../BROME/Boletin_" + fecha 
     
-
-    # A continuacion, generamos un directorio por sección.
-
-
-
-        
-
+    # Vamos descargando cada uno de los pdfs de cada subseccion en su directorio correspondiente.
+    ul_tags = cabeceras_raw[0].find_next_siblings("ul")
+    for i, ul_tag in enumerate(ul_tags):
+        # Obtenemos el nombre de la seccion actual
+        seccion_actual = cabeceras[i]
+        # Obtenemos todos los pdfs de dicha seccion, es decir, los children de tipo li de cada h4
+        li_tag = ul_tag.findChildren('li', class_="puntoPDF")
+        # Recorremos cada uno de los li (pdfs) de cada seccion
+        for pdf in li_tag:            
+            # Obtenemos la url del pdf para poder descagrarlo
+            url_pdf = "https://www.boe.es/" + pdf.a["href"]
+            # Accedemos al nombre del pdf para guardarlo correctamente
+            nombre_pdf = url_pdf.split("/")[-1]
+            # Generamos la ruta para cada pdf, que está compuesta por: 
+            #   - El nombre y la fecha del boletín 
+            #   - Un número (i), para que se muestren en el mismo orden que en la web cada una de las secciones en el explorador de archivos
+            #   - El nombre de la seccion actual
+            #   - El nombre del pdf que se va a almacenar
+            ruta_pdf = dir_base+"/"+str(i)+"_"+seccion_actual+"/"+ nombre_pdf
+            response_pdf = requests.get(url_pdf)
+            # Utilizamos la funcion safe_open_w definida al inicio del fichero para que se cree el directorio en caso de que no exista
+            with safe_open_w(ruta_pdf) as output_file:
+                print("Guardando pdf en: "+ dir_base+"/"+seccion_actual+"/"+ nombre_pdf)
+                output_file.write(response_pdf.content)
+            print("----------------------------------------------------------")
 
 else:
     print(f"No se disponen de datos en el Boletín para la fecha {anio}-{mes}-{dia}")
-
-'''

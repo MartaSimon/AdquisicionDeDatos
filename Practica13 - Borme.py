@@ -63,6 +63,10 @@ def safe_open_w(path):
     output_file = open(path, 'wb')
     return output_file
 
+#############################
+#       FASE DE SPIDER      #      
+#############################
+
 # Url a la que se va a realizar la primera llamada
 url = "https://www.boe.es/diario_borme/"
 
@@ -117,6 +121,10 @@ if response.status_code==200:
     driver.close()
     print("Cerrando el driver")
     '''
+
+    ###############################
+    #       FASE DE SCRAPPER      #      
+    ###############################
 
     # Una vez obtenida la seccion actual, realizamos un request a dicha url para obtener su html, parsearlo y poder descargar los pdfs
     response = requests.get(url_seccion_segunda)
@@ -176,7 +184,7 @@ if response.status_code==200:
         for otros_formatos in otros_formatos_tag:
             # Obtenemos la url de la página de otros formatos para navegar hasta ella y poder descargar el XML
             url_otros_formatos = "https://www.boe.es/" + otros_formatos.a["href"]
-            print(url_otros_formatos)
+            # print(url_otros_formatos)
             # realizamos una peticion para navegar a la página en la que se encuentra el XML
             response_otros_formatos = requests.get(url_otros_formatos)
 

@@ -122,14 +122,18 @@ def main():
             fechaIniStr = "2019-10-01T00:00:00UTC"
             fechaFinStr = "2019-10-30T23:59:59UTC"
             code, response_final = get_climatologias_diarias(fechaIniStr, fechaFinStr, indicativo)
+            # Mostramos el diccionario obtenido
             if(code == 200):
                 print(" La respuesta de las climatologías diarias para la estación de 'Madrid, Ciudad universitaria' es: ", response_final)
-        # Mostramos el diccionario obtenido
+        
     
     print(len(all_stations))
+    
     #################################
     #       EJERCICIO OPCIONAL      #
     #################################
+    # Comenzamos con un sleep para que podamos ver las salidas del ejercicio anterior
+    time.sleep(5)
     # Generamos un diccionario para ir almacenando los datos
     datos_anio_estaciones = {}
     # Hacemos un bucle para recorrer todos los años de los que queremos recopilar informacion
